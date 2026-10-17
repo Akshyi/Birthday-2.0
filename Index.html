@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday My Love! 💖 - Customizable Birthday Adventure</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Tone.js for Romantic Ambient Audio Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        },
+                        blush: '#fff5f7',
+                        gold: '#d4af37',
+                        champagne: '#f7e7ce'
+                    },
+                    fontFamily: {
+                        cursive: ['Dancing Script', 'cursive'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Keyframe Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.06); }
+        }
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+
+        .animate-float { animation: float 5s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
+        .animate-heartbeat { animation: heartBeat 2.5s infinite; }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 40px rgba(244, 63, 94, 0.08);
+        }
+        
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Canvas Overlay */
+        #hearts-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #fff1f2; }
+        ::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f43f5e; }
+
+        /* Option Card Effect */
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px -5px rgba(244, 63, 94, 0.15);
+        }
+        .option-card.selected {
+            border-color: #f43f5e;
+            background: linear-gradient(135deg, #ffffff 0%, #fff1f2 100%);
+            box-shadow: 0 12px 28px -5px rgba(244, 63, 94, 0.28);
+            transform: translateY(-3px);
+        }
+
+        .polaroid {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .polaroid:hover {
+            transform: translateY(-6px) rotate(0deg) scale(1.02) !important;
+            box-shadow: 0 20px 30px rgba(225, 29, 72, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-rose-50 via-blush to-amber-50 text-slate-800 font-sans min-h-screen relative overflow-x-hidden selection:bg-rose-200 selection:text-rose-900">
+
+    <!-- Background Animated Canvas -->
+    <canvas id="hearts-canvas"></canvas>
+
+    <!-- Top Action Floating Toolbar -->
+    <div class="fixed top-4 right-4 z-40 flex items-center gap-2">
+        <!-- Customize Questions Modal Trigger -->
+        <button onclick="openEditorModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 text-xs font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-pen-to-square text-sm"></i>
+            <span>Customize Game</span>
+        </button>
+
+        <!-- Ambient Audio Toggle -->
+        <button id="music-toggle" class="bg-white/90 hover:bg-white text-rose-600 px-4 py-2.5 rounded-full shadow-lg border border-rose-200 flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 text-xs font-semibold uppercase tracking-wider backdrop-blur-md">
+            <i id="music-icon" class="fa-solid fa-music"></i>
+            <span id="music-text" class="hidden sm:inline">Play Audio</span>
+        </button>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 sm:py-12">
+
+        <!-- ================= HERO SECTION ================= -->
+        <header class="text-center mb-10 sm:mb-14 relative">
+            <div class="inline-block relative mb-3">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100/80 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold backdrop-blur-sm shadow-sm animate-pulse-glow">
+                    <i class="fa-solid fa-cake-candles text-rose-500"></i> Birthday Special Edition
+                </span>
+            </div>
+            
+            <h1 id="hero-title" class="font-cursive text-5xl sm:text-7xl md:text-8xl text-rose-600 font-bold mb-3 drop-shadow-sm leading-tight">
+                Planning for my Baby's Birthday 🎂💖
+            </h1>
+            
+            <p id="hero-subtitle" class="font-serif italic text-base sm:text-2xl text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed px-2">
+                "A personalized choice-filled adventure crafted with love just for you!"
+            </p>
+
+            <div class="mt-5 flex justify-center items-center gap-3 text-rose-400 text-xs font-semibold uppercase tracking-widest">
+                <span class="w-10 h-px bg-rose-300/60"></span>
+                <i class="fa-solid fa-sparkles text-rose-500 animate-heartbeat"></i>
+                <span id="preset-badge-label">Baby's Birthday Edition</span>
+                <i class="fa-solid fa-sparkles text-rose-500 animate-heartbeat"></i>
+                <span class="w-10 h-px bg-rose-300/60"></span>
+            </div>
+        </header>
+
+        <!-- ================= ADVENTURE STEPS CONTAINER ================= -->
+        <section class="mb-14">
+            <!-- Progress Bar -->
+            <div class="max-w-xl mx-auto mb-8 px-4">
+                <div class="flex justify-between text-xs font-bold text-rose-600 uppercase tracking-wider mb-2">
+                    <span id="step-category-name">Progress</span>
+                    <span id="progress-text">Step 1 of 4</span>
+                </div>
+                <div class="h-3 w-full bg-rose-100 rounded-full overflow-hidden p-0.5 border border-rose-200 shadow-inner">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full transition-all duration-500 ease-out w-1/4 shadow-sm"></div>
+                </div>
+            </div>
+
+            <!-- Dynamic Question Panel Card -->
+            <div id="game-card-container" class="glass-card rounded-3xl p-6 sm:p-10 shadow-xl border border-white">
+                <!-- Rendered Dynamically via JS -->
+            </div>
+
+            <!-- Step Navigation Buttons -->
+            <div class="flex justify-between items-center mt-6 px-2">
+                <button id="prev-btn" onclick="navigateStep(-1)" class="px-5 py-2.5 rounded-xl border border-rose-200 text-rose-700 text-sm font-semibold hover:bg-rose-50 transition-all flex items-center gap-2 opacity-50 pointer-events-none">
+                    <i class="fa-solid fa-chevron-left text-xs"></i> Previous
+                </button>
+                
+                <span class="text-xs text-rose-400 font-medium italic hidden sm:inline">Tap any option card to choose</span>
+
+                <button id="next-btn" onclick="navigateStep(1)" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold shadow-md transition-all flex items-center gap-2">
+                    Next <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= ITINERARY SUMMARY CARD & SHARE ================= -->
+        <section id="itinerary-section" class="mb-14 scroll-mt-6">
+            <div class="glass-card rounded-3xl p-6 sm:p-10 border-2 border-rose-200 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-gradient-to-l from-rose-500 to-rose-400 text-white text-[10px] font-bold uppercase tracking-widest px-6 py-1.5 rounded-bl-2xl shadow-sm">
+                    Live Birthday Pass
+                </div>
+
+                <div class="text-center mb-8">
+                    <h2 class="font-cursive text-4xl sm:text-5xl text-rose-600 font-bold">Your Birthday Itinerary 💌</h2>
+                    <p class="text-slate-600 text-sm mt-1">Here is the exact dream day you selected!</p>
+                </div>
+
+                <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-8">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Custom Wish Note Display -->
+                <div class="max-w-3xl mx-auto bg-rose-50/80 rounded-2xl p-4 border border-rose-200/60 mb-8">
+                    <span class="text-[11px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1 mb-1">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Special Wish / Custom Request:
+                    </span>
+                    <p id="summary-custom-wish" class="text-slate-700 italic text-sm">"No custom wish added yet."</p>
+                </div>
+
+                <!-- One-Tap Action Buttons -->
+                <div class="text-center max-w-xl mx-auto space-y-3">
+                    <p class="text-xs text-slate-500 font-semibold">Send your finalized choices directly to your partner!</p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button onclick="sendToWhatsApp()" class="flex-1 py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                            <i class="fa-brands fa-whatsapp text-xl"></i>
+                            <span>Send via WhatsApp 💬</span>
+                        </button>
+
+                        <button onclick="sendToEmail()" class="flex-1 py-3.5 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-lg shadow-rose-600/20 transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-envelope text-lg"></i>
+                            <span>Send via Email 💌</span>
+                        </button>
+                    </div>
+
+                    <button onclick="copyItineraryText()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline underline-offset-4 mt-2 inline-block">
+                        <i class="fa-solid fa-copy"></i> Copy Itinerary Text
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MEMORY SCRAPBOOK ================= -->
+        <section class="mb-12">
+            <div class="text-center mb-8">
+                <span class="text-xs font-bold uppercase tracking-widest text-rose-500 bg-rose-100/80 px-3 py-1 rounded-full">Our Memories</span>
+                <h2 class="font-cursive text-4xl sm:text-5xl text-rose-600 font-bold mt-2">Memory Scrapbook 📸</h2>
+                <p class="text-slate-600 text-sm mt-1">A few favorite moments with you</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="scrapbook-container">
+                <!-- Polaroid 1 -->
+                <div class="polaroid bg-white p-4 rounded-2xl shadow-md border border-rose-100 transform -rotate-2">
+                    <div class="overflow-hidden rounded-xl mb-3 aspect-square bg-rose-50 relative">
+                        <img src="https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80" alt="Couple romantic moment" class="w-full h-full object-cover">
+                    </div>
+                    <p class="font-cursive text-xl text-center text-slate-700 font-bold">Forever My Favorite Smile 🥰</p>
+                </div>
+
+                <!-- Polaroid 2 -->
+                <div class="polaroid bg-white p-4 rounded-2xl shadow-md border border-rose-100 transform rotate-2">
+                    <div class="overflow-hidden rounded-xl mb-3 aspect-square bg-rose-50 relative">
+                        <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" alt="Holding hands" class="w-full h-full object-cover">
+                    </div>
+                    <p class="font-cursive text-xl text-center text-slate-700 font-bold">Every Adventure With You ✨</p>
+                </div>
+
+                <!-- Polaroid 3 -->
+                <div class="polaroid bg-white p-4 rounded-2xl shadow-md border border-rose-100 transform -rotate-1 sm:col-span-2 md:col-span-1">
+                    <div class="overflow-hidden rounded-xl mb-3 aspect-square bg-rose-50 relative">
+                        <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80" alt="Love celebration" class="w-full h-full object-cover">
+                    </div>
+                    <p class="font-cursive text-xl text-center text-slate-700 font-bold">To Your Best Year Yet! 🎉</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center py-6 text-slate-500 text-xs">
+            Customizable Birthday Adventure Web App • Built with love 💕
+        </footer>
+
+    </div>
+
+    <!-- ================= QUESTION & OPTION EDITOR MODAL ================= -->
+    <div id="editor-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-modal w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-white flex flex-col overflow-hidden transform scale-95 transition-all duration-300" id="editor-modal-card">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-lg leading-tight">Interactive Question & Option Customizer</h3>
+                        <p class="text-xs text-rose-100">Modify questions, choices, badges, or load presets</p>
+                    </div>
+                </div>
+                <button onclick="closeEditorModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 text-slate-700 text-sm">
+                
+                <!-- Presets Bar -->
+                <div class="bg-rose-50/80 p-4 rounded-2xl border border-rose-200">
+                    <label class="font-bold text-xs text-rose-700 uppercase tracking-wider block mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Load Quick Theme Preset
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="loadPreset('romantic')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl border border-rose-200 transition-all shadow-sm">
+                            🌹 Baby's Birthday Edition
+                        </button>
+                        <button onclick="loadPreset('cozy')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl border border-rose-200 transition-all shadow-sm">
+                            ☕ Cozy Home Birthday
+                        </button>
+                        <button onclick="loadPreset('travel')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-700 font-semibold text-xs rounded-xl border border-rose-200 transition-all shadow-sm">
+                            ✈️ Travel & Adventure
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Questions Accordion Container -->
+                <div id="editor-questions-list" class="space-y-4">
+                    <!-- Dynamic Question Editors rendered here -->
+                </div>
+
+                <!-- Add Question Button -->
+                <button onclick="addNewQuestion()" class="w-full py-3 rounded-2xl border-2 border-dashed border-rose-300 text-rose-600 font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-plus"></i> Add New Question / Step
+                </button>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                <button onclick="closeEditorModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 font-semibold hover:bg-slate-100 text-xs">
+                    Cancel
+                </button>
+                <button onclick="saveAndApplyCustomizations()" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Apply & Play Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-message">Notification message</span>
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // Updated Game Data Definitions with your specific choices
+        const PRESETS = {
+            romantic: [
+                {
+                    title: "How do you want to start your Morning? ☀️",
+                    subtitle: "How should we kick off your special morning?",
+                    options: [
+                        { icon: "🥐", title: "Breakfast and Gurudwara Sadh Sangat", desc: "Freshly brewed coffee, warm croissants, and spiritual morning peace.", badge: "Most Meaningful" },
+                        { icon: "☕", title: "Shopping in Ambience", desc: "Head out to our favorite cute aesthetic café & boutique strolls.", badge: "Foodie & Fun" },
+                        { icon: "🛌", title: "Option 1 followed by Option 2", desc: "The ultimate combination of peaceful morning prayers and café time!", badge: "Best of Both" }
+                    ]
+                },
+                {
+                    title: "Where are we having the Birthday Lunch?",
+                    subtitle: "Pick your dream daytime spot",
+                    options: [
+                        { icon: "🧺", title: "Paul's", desc: "Cozy bistro vibes, fresh pastries, and wonderful lunch company.", badge: "Classic Vibe" },
+                        { icon: "☕", title: "Laidback Cafe", desc: "Relaxed atmosphere, great food, and comfortable conversations.", badge: "Chill & Cozy" },
+                        { icon: "🥟", title: "TGI Fridays / Mamagoto / Burma Burma", desc: "Your pick of delicious Asian or restaurant favorite comfort food!", badge: "Delicious Food" }
+                    ]
+                },
+                {
+                    title: "What about the Evening Plans?",
+                    subtitle: "Where are we heading tonight?",
+                    options: [
+                        { icon: "🧩", title: "Mystery Room", desc: "An exciting immersive puzzle adventure to solve together!", badge: "Thrilling" },
+                        { icon: "🎨", title: "Clay Modeling", desc: "Get creative and shape some cute pottery memories together.", badge: "Creative Date" },
+                        { icon: "🚗", title: "Shopping & Driving Back", desc: "Retail therapy followed by a romantic late-evening scenic drive.", badge: "Relaxed Evening" }
+                    ]
+                }
+            ],
+            cozy: [
+                {
+                    title: "Morning Wake-up Vibe ☀️",
+                    subtitle: "How to start the relaxing day",
+                    options: [
+                        { icon: "🥞", title: "Pancakes in Bed", desc: "Syrup, coffee, and lazy morning movies.", badge: "Cozy" },
+                        { icon: "🌳", title: "Morning Walk", desc: "Fresh air and holding hands in the park.", badge: "Peaceful" }
+                    ]
+                },
+                {
+                    title: "Afternoon Plan 🛋️",
+                    subtitle: "What to do next",
+                    options: [
+                        { icon: "🎮", title: "Gaming & Snacks", desc: "Co-op games and favorite treats.", badge: "Fun" },
+                        { icon: "📚", title: "Bookstore Date", desc: "Browsing novels and cozy corner reading.", badge: "Quiet" }
+                    ]
+                }
+            ],
+            travel: [
+                {
+                    title: "Morning Getaway Vibe ✈️",
+                    subtitle: "Where are we headed?",
+                    options: [
+                        { icon: "🏔️", title: "Hill Station Drive", desc: "Mountain views, winding roads, and crisp air.", badge: "Scenic" },
+                        { icon: "🏖️", title: "Weekend Beach Resort", desc: "Sun, sand, and relaxing ocean breeze.", badge: "Relaxing" }
+                    ]
+                }
+            ]
+        };
+
+        // Active Game State
+        let gameData = JSON.parse(JSON.stringify(PRESETS.romantic));
+        let activeStep = 0;
+        let selections = {};
+        let customWishNote = "";
+
+        // Audio State
+        let isAudioPlaying = false;
+        let synth = null;
+        let loop = null;
+
+        // UI Toast helper
+        function showToast(message, iconClass = "fa-circle-check text-emerald-400") {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMessage.innerText = message;
+            toastIcon.className = `fa-solid ${iconClass} text-base`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3200);
+        }
+
+        // Render Current Question Card
+        function renderStep() {
+            const container = document.getElementById('game-card-container');
+            const totalSteps = gameData.length;
+            const currentQuestion = gameData[activeStep];
+
+            // Handle Wish Step if beyond question steps
+            if (activeStep >= totalSteps) {
+                renderWishStep(container);
+                updateProgressBar(totalSteps + 1, totalSteps + 1);
+                return;
+            }
+
+            updateProgressBar(activeStep + 1, totalSteps + 1);
+            document.getElementById('step-category-name').innerText = `Question ${activeStep + 1}`;
+
+            let optionsHTML = '';
+            currentQuestion.options.forEach((opt, idx) => {
+                const isSelected = selections[activeStep] === opt.title;
+                const badgeHTML = opt.badge ? `<span class="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-2 inline-block">${opt.badge}</span>` : '';
+
+                optionsHTML += `
+                    <div onclick="selectOption(${activeStep}, '${escapeQuotes(opt.title)}')" 
+                         class="option-card cursor-pointer p-5 rounded-2xl border-2 ${isSelected ? 'selected' : 'border-rose-100 bg-white/80'} hover:border-rose-300 flex flex-col items-center text-center group relative">
+                        ${badgeHTML}
+                        <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                            ${opt.icon || '✨'}
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mb-1">${opt.title}</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">${opt.desc || ''}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="text-center mb-8">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-rose-500 bg-rose-100/80 px-3 py-1 rounded-full">Step 0${activeStep + 1}</span>
+                    <h2 class="font-serif text-2xl sm:text-4xl text-slate-800 font-bold mt-2">${currentQuestion.title}</h2>
+                    <p class="text-slate-600 text-sm mt-1">${currentQuestion.subtitle || ''}</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-${Math.min(currentQuestion.options.length, 3)} gap-4">
+                    ${optionsHTML}
+                </div>
+            `;
+
+            updateNavButtons();
+        }
+
+        // Render Secret Wish / Custom Request Step
+        function renderWishStep(container) {
+            document.getElementById('step-category-name').innerText = `Final Wish Step`;
+
+            container.innerHTML = `
+                <div class="text-center mb-6">
+                    <span class="text-xs font-bold uppercase tracking-widest text-rose-500 bg-rose-100/80 px-3 py-1 rounded-full">Final Step</span>
+                    <h2 class="font-serif text-2xl sm:text-4xl text-slate-800 font-bold mt-2">Make a Secret Birthday Wish 🌟</h2>
+                    <p class="text-slate-600 text-sm mt-1">Any extra request, surprise idea, or love note for your day?</p>
+                </div>
+
+                <div class="max-w-xl mx-auto">
+                    <div class="mb-6">
+                        <textarea id="custom-wish-input" oninput="saveCustomWish(this.value)" rows="4" 
+                            class="w-full p-4 rounded-2xl border-2 border-rose-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 text-slate-700 placeholder-rose-300 resize-none bg-white/90 text-sm outline-none transition-all shadow-inner" 
+                            placeholder="E.g., 'I want extra long hugs, a foot massage, and a surprise dessert stop!'">${customWishNote}</textarea>
+                    </div>
+                    <button onclick="finishItinerary()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-base shadow-lg shadow-rose-500/25 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                        <span>Review & Lock Itinerary</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+
+            updateNavButtons();
+        }
+
+        function saveCustomWish(val) {
+            customWishNote = val;
+            document.getElementById('summary-custom-wish').innerText = val ? `"${val}"` : `"No custom wish added yet."`;
+        }
+
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function selectOption(stepIndex, optionTitle) {
+            selections[stepIndex] = optionTitle;
+            renderStep();
+            updateSummaryGrid();
+
+            confetti({
+                particleCount: 20,
+                spread: 40,
+                origin: { y: 0.7 },
+                colors: ['#fda4af', '#f43f5e', '#f7e7ce']
+            });
+
+            // Auto advance
+            setTimeout(() => {
+                navigateStep(1);
+            }, 350);
+        }
+
+        function navigateStep(direction) {
+            const maxSteps = gameData.length + 1; // including wish step
+            const target = activeStep + direction;
+
+            if (target >= 0 && target < maxSteps) {
+                activeStep = target;
+                renderStep();
+            }
+        }
+
+        function updateProgressBar(current, total) {
+            const percent = Math.min((current / total) * 100, 100);
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `Step ${current} of ${total}`;
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const totalSteps = gameData.length;
+
+            if (activeStep === 0) {
+                prevBtn.classList.add('opacity-50', 'pointer-events-none');
+            } else {
+                prevBtn.classList.remove('opacity-50', 'pointer-events-none');
+            }
+
+            if (activeStep >= totalSteps) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        // Render Live Itinerary Grid
+        function updateSummaryGrid() {
+            const grid = document.getElementById('summary-grid');
+            let html = '';
+
+            gameData.forEach((q, idx) => {
+                const choice = selections[idx] || 'Not selected yet';
+                html += `
+                    <div class="p-4 rounded-2xl bg-white/80 border border-rose-100 flex items-start gap-3">
+                        <span class="text-2xl p-2 bg-rose-50 rounded-xl">✨</span>
+                        <div>
+                            <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">${q.title}</span>
+                            <span class="font-semibold text-slate-800 text-xs sm:text-sm">${choice}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        function finishItinerary() {
+            document.getElementById('itinerary-section').scrollIntoView({ behavior: 'smooth' });
+            triggerGrandConfetti();
+            showToast("✨ Birthday Itinerary Complete!", "fa-sparkles text-amber-400");
+        }
+
+        // ================= EDITOR MODAL LOGIC =================
+        function openEditorModal() {
+            renderEditorQuestionsList();
+            const modal = document.getElementById('editor-modal');
+            const card = document.getElementById('editor-modal-card');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }
+
+        function closeEditorModal() {
+            const modal = document.getElementById('editor-modal');
+            const card = document.getElementById('editor-modal-card');
+
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function renderEditorQuestionsList() {
+            const container = document.getElementById('editor-questions-list');
+            let html = '';
+
+            gameData.forEach((q, qIdx) => {
+                let optionsHTML = '';
+                q.options.forEach((opt, oIdx) => {
+                    optionsHTML += `
+                        <div class="p-3 bg-white rounded-xl border border-rose-200/80 space-y-2 relative group">
+                            <div class="flex items-center gap-2">
+                                <input type="text" value="${escapeQuotes(opt.icon || '✨')}" onchange="updateOptionData(${qIdx}, ${oIdx}, 'icon', this.value)" placeholder="Emoji" class="w-12 p-2 border border-slate-200 rounded-lg text-center text-sm">
+                                <input type="text" value="${escapeQuotes(opt.title)}" onchange="updateOptionData(${qIdx}, ${oIdx}, 'title', this.value)" placeholder="Option Title" class="flex-1 p-2 border border-slate-200 rounded-lg text-xs font-bold">
+                                <input type="text" value="${escapeQuotes(opt.badge || '')}" onchange="updateOptionData(${qIdx}, ${oIdx}, 'badge', this.value)" placeholder="Badge" class="w-24 p-2 border border-slate-200 rounded-lg text-xs text-rose-600 font-semibold">
+                                <button onclick="deleteOption(${qIdx}, ${oIdx})" class="text-rose-400 hover:text-rose-600 p-2 text-xs">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                            <input type="text" value="${escapeQuotes(opt.desc || '')}" onchange="updateOptionData(${qIdx}, ${oIdx}, 'desc', this.value)" placeholder="Description" class="w-full p-2 border border-slate-200 rounded-lg text-xs text-slate-600">
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="p-4 bg-white/90 rounded-2xl border border-rose-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-rose-600 uppercase tracking-wider">Question ${qIdx + 1}</span>
+                            <button onclick="deleteQuestion(${qIdx})" class="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-trash"></i> Remove Question
+                            </button>
+                        </div>
+                        <input type="text" value="${escapeQuotes(q.title)}" onchange="updateQuestionData(${qIdx}, 'title', this.value)" placeholder="Question Title" class="w-full p-2.5 border border-slate-200 rounded-xl font-bold text-sm">
+                        <input type="text" value="${escapeQuotes(q.subtitle || '')}" onchange="updateQuestionData(${qIdx}, 'subtitle', this.value)" placeholder="Subtitle / Instruction" class="w-full p-2 border border-slate-200 rounded-xl text-xs text-slate-600">
+                        
+                        <div class="space-y-2 pt-2">
+                            <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Options</label>
+                            ${optionsHTML}
+                            <button onclick="addNewOption(${qIdx})" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl border border-rose-200 transition-all">
+                                + Add Option to Question ${qIdx + 1}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateQuestionData(qIdx, key, val) {
+            gameData[qIdx][key] = val;
+        }
+
+        function updateOptionData(qIdx, oIdx, key, val) {
+            gameData[qIdx].options[oIdx][key] = val;
+        }
+
+        function addNewQuestion() {
+            gameData.push({
+                title: "New Birthday Question",
+                subtitle: "Select your favorite choice",
+                options: [
+                    { icon: "🎁", title: "Option A", desc: "Description for option A", badge: "New" },
+                    { icon: "✨", title: "Option B", desc: "Description for option B", badge: "Special" }
+                ]
+            });
+            renderEditorQuestionsList();
+        }
+
+        function deleteQuestion(qIdx) {
+            if (gameData.length <= 1) {
+                showToast("You need at least 1 question step!", "fa-triangle-exclamation text-amber-400");
+                return;
+            }
+            gameData.splice(qIdx, 1);
+            renderEditorQuestionsList();
+        }
+
+        function addNewOption(qIdx) {
+            gameData[qIdx].options.push({
+                icon: "🎉",
+                title: "New Option",
+                desc: "Description of option",
+                badge: "Choice"
+            });
+            renderEditorQuestionsList();
+        }
+
+        function deleteOption(qIdx, oIdx) {
+            if (gameData[qIdx].options.length <= 1) {
+                showToast("A question needs at least 1 option!", "fa-triangle-exclamation text-amber-400");
+                return;
+            }
+            gameData[qIdx].options.splice(oIdx, 1);
+            renderEditorQuestionsList();
+        }
+
+        function loadPreset(key) {
+            if (PRESETS[key]) {
+                gameData = JSON.parse(JSON.stringify(PRESETS[key]));
+                selections = {};
+                renderEditorQuestionsList();
+                document.getElementById('preset-badge-label').innerText = `${key.charAt(0).toUpperCase() + key.slice(1)} Vibe`;
+                showToast(`Loaded ${key} theme preset!`, "fa-wand-magic-sparkles text-amber-400");
+            }
+        }
+
+        function saveAndApplyCustomizations() {
+            activeStep = 0;
+            selections = {};
+            renderStep();
+            updateSummaryGrid();
+            closeEditorModal();
+            showToast("Customized options applied!", "fa-circle-check text-emerald-400");
+        }
+
+        // ================= MESSAGING & SHARING =================
+        function buildItineraryMessageText() {
+            let text = `💖 MY BIRTHDAY ADVENTURE ITINERARY 💖\n\n`;
+            gameData.forEach((q, idx) => {
+                text += `✨ ${q.title}: ${selections[idx] || 'Pending'}\n`;
+            });
+            text += `\n🌟 Secret Wish: ${customWishNote || 'Just lots of love!'}\n\n`;
+            text += `Can't wait to celebrate together! 🥰🎉`;
+            return text;
+        }
+
+        function sendToWhatsApp() {
+            triggerGrandConfetti();
+            const text = encodeURIComponent(buildItineraryMessageText());
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function sendToEmail() {
+            triggerGrandConfetti();
+            const subject = encodeURIComponent("💖 My Official Birthday Itinerary!");
+            const body = encodeURIComponent(buildItineraryMessageText());
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        function copyItineraryText() {
+            const text = buildItineraryMessageText();
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast("Copied itinerary to clipboard! 📋", "fa-clipboard text-sky-400");
+        }
+
+        // Ambient Audio Synth (Tone.js)
+        async function toggleMusic() {
+            const buttonText = document.getElementById('music-text');
+            const buttonIcon = document.getElementById('music-icon');
+
+            if (!isAudioPlaying) {
+                await Tone.start();
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 1.5, decay: 2, sustain: 0.6, release: 3 }
+                    }).toDestination();
+                    synth.volume.value = -16;
+
+                    const chords = [
+                        ["C4", "E4", "G4", "B4"],
+                        ["A3", "C4", "E4", "G4"],
+                        ["F3", "A3", "C4", "E4"],
+                        ["G3", "B3", "D4", "F#4"]
+                    ];
+                    let stepIndex = 0;
+
+                    loop = new Tone.Loop((time) => {
+                        synth.triggerAttackRelease(chords[stepIndex], "2n", time);
+                        stepIndex = (stepIndex + 1) % chords.length;
+                    }, "1m").start(0);
+                }
+
+                Tone.Transport.start();
+                isAudioPlaying = true;
+                if (buttonText) buttonText.innerText = "Mute Audio";
+                buttonIcon.className = "fa-solid fa-volume-high";
+                showToast("🎶 Playing romantic audio background!", "fa-music text-rose-400");
+            } else {
+                Tone.Transport.stop();
+                isAudioPlaying = false;
+                if (buttonText) buttonText.innerText = "Play Audio";
+                buttonIcon.className = "fa-solid fa-music";
+            }
+        }
+
+        document.getElementById('music-toggle').addEventListener('click', toggleMusic);
+
+        // Confetti Generator
+        function triggerGrandConfetti() {
+            const duration = 2.5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // Floating Hearts Canvas Animation
+        const canvas = document.getElementById('hearts-canvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Heart {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 12 + 8;
+                this.speedY = Math.random() * 0.9 + 0.4;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.opacity = Math.random() * 0.4 + 0.2;
+                this.color = ['#f43f5e', '#fda4af', '#fecdd3', '#e11d48'][Math.floor(Math.random() * 4)];
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < -20) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                const x = this.x, y = this.y, size = this.size;
+                ctx.moveTo(x, y);
+                ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+                ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 22; i++) hearts.push(new Heart());
+
+        function animateHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hearts.forEach(h => { h.update(); h.draw(); });
+            requestAnimationFrame(animateHearts);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            animateHearts();
+            renderStep();
+            updateSummaryGrid();
+        };
+    </script>
+</body>
+</html>
